@@ -42,6 +42,7 @@ class _MoneyMasherState extends State with TickerProviderStateMixin {
   late Animation _pulseAnimation;
   late AnimationController _hoverController;
   late Animation _hoverAnimation;
+  int _ClickCount = 0;
 
   @override
   void initState() {
@@ -53,7 +54,7 @@ class _MoneyMasherState extends State with TickerProviderStateMixin {
     _pulseAnimation = Tween(begin: 0.85, end: 1.0).animate(_pulseController);
 
     _hoverController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 900),
       vsync: this,
     );
     _hoverAnimation = Tween(
@@ -81,9 +82,8 @@ class _MoneyMasherState extends State with TickerProviderStateMixin {
     ));
 
     _hoverController
-      ..value =
-          0.0 // Resets the controller to start the hover animation from the beginning
-      ..forward(); // Starts the animation
+      ..value = 0.0
+      ..repeat(reverse: true);
   }
 
   void _onMouseExit() {
@@ -124,27 +124,58 @@ class _MoneyMasherState extends State with TickerProviderStateMixin {
             Expanded(
               flex: 4,
               child: Container(
-                padding: const EdgeInsets.all(150),
                 color: Colors.black.withOpacity(0.20),
                 child: Center(
-                  child: MouseRegion(
-                    onEnter: (_) => _onMouseEnter(),
-                    onExit: (_) => _onMouseExit(),
-                    child: AnimatedBuilder(
-                      animation:
-                          Listenable.merge([_pulseAnimation, _hoverAnimation]),
-                      builder: (context, child) {
-                        final scale = _hoverController.isAnimating ||
-                                _hoverController.value == 1.0
-                            ? _hoverAnimation.value
-                            : _pulseAnimation.value;
-                        return Transform.scale(
-                          scale: scale,
-                          child: child,
-                        );
-                      },
-                      child: Image.asset('lib/assets/dollar.png'),
-                    ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Align(
+                        alignment: Alignment(0, -1),
+                        child: Container(
+                          width: double.infinity,
+                          color: Colors.black.withOpacity(0.75),
+                          padding: EdgeInsets.symmetric(vertical: 15),
+                          child: Text(
+                            '$_ClickCount Dollars',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 24, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(150),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            MouseRegion(
+                              onEnter: (_) => _onMouseEnter(),
+                              onExit: (_) => _onMouseExit(),
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _ClickCount++;
+                                  });
+                                },
+                              child: AnimatedBuilder(
+                                animation:
+                                    Listenable.merge([_pulseAnimation, _hoverAnimation]),
+                                builder: (context, child) {
+                                  final scale = _hoverController.isAnimating ||
+                                          _hoverController.value == 1.0
+                                      ? _hoverAnimation.value
+                                      : _pulseAnimation.value;
+                                  return Transform.scale(
+                                    scale: scale,
+                                    child: child,
+                                  );
+                                },
+                                child: Image.asset('lib/assets/dollar.png'),
+                              ),                        ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
