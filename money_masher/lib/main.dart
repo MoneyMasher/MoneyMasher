@@ -130,7 +130,20 @@ class _MoneyMasherState extends State with TickerProviderStateMixin {
                     alignment: Alignment.center,
                     children: [
                       Align(
-                        alignment: Alignment(0, -1),
+                        alignment: Alignment(0, -0.8),
+                        child: Container(
+                          width: double.infinity,
+                          color: Colors.black.withOpacity(0.75),
+                          padding: EdgeInsets.symmetric(vertical: 5),
+                          child: Text(
+                            'MONEY MASHER',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 14, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment(0, -0.6),
                         child: Container(
                           width: double.infinity,
                           color: Colors.black.withOpacity(0.75),
@@ -138,7 +151,7 @@ class _MoneyMasherState extends State with TickerProviderStateMixin {
                           child: Text(
                             '$_ClickCount Dollars',
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 24, color: Colors.white),
+                            style: TextStyle(fontSize: 20, color: Colors.white),
                           ),
                         ),
                       ),
