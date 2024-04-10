@@ -243,32 +243,6 @@ class _MoneyMasherState extends State with TickerProviderStateMixin {
             ),
           ),
         ),
-        Container(
-          color: Colors.black.withOpacity(0.9),
-          width: double.infinity,
-          padding: const EdgeInsets.all(8),
-          child: const Align(
-            alignment: Alignment.centerLeft,
-            child: Center(
-              child: Text(
-                'Items',
-                style:
-                    TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-            ),
-          ),
-        ),
-        Expanded(
-          child: Container(
-            child: ListView.builder(
-              itemCount: 5,
-              itemBuilder: (context, index) => ListTile(
-                title: Text('Item ${index + 1}',
-                    style: const TextStyle(color: Colors.white)),
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }
