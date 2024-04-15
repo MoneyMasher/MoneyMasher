@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:window_manager/window_manager.dart';
+import "package:flutter/material.dart";
+import "package:window_manager/window_manager.dart";
+import "db.dart";
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,25 +35,27 @@ class MoneyMasher extends StatefulWidget {
   const MoneyMasher({super.key});
 
   @override
-  _MoneyMasherState createState() => _MoneyMasherState();
+  MoneyMasherState createState() => MoneyMasherState();
 }
 
-class _MoneyMasherState extends State with TickerProviderStateMixin {
+class MoneyMasherState extends State with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late Animation _pulseAnimation;
   late AnimationController _hoverController;
   late Animation _hoverAnimation;
-  int _ClickCount = 0;
+  int _clicks = 0;
+  final _db = DatabaseManager();
 
   @override
   void initState() {
     super.initState();
+    _initializeApp();
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1350),
       vsync: this,
     )..repeat(reverse: true);
     _pulseAnimation = Tween(begin: 0.85, end: 1.0).animate(_pulseController);
-
+    
     _hoverController = AnimationController(
       duration: const Duration(milliseconds: 900),
       vsync: this,
@@ -63,11 +66,24 @@ class _MoneyMasherState extends State with TickerProviderStateMixin {
     ).animate(_hoverController);
   }
 
+  _initializeApp() async {
+    _clicks = await _db.getClicks();
+    setState(() {});
+  }
+
   @override
   void dispose() {
+    _db.updateClicks(_clicks);
     _pulseController.dispose();
     _hoverController.dispose();
     super.dispose();
+  }
+
+  void _incrementClick() {
+    setState(() {
+      _clicks++;
+    });
+    _db.updateClicks(_clicks);
   }
 
   void _onMouseEnter() {
@@ -100,7 +116,7 @@ class _MoneyMasherState extends State with TickerProviderStateMixin {
         height: double.infinity,
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('lib/assets/bg-1920.png'),
+            image: AssetImage("lib/assets/bg-1920.png"),
             fit: BoxFit.cover,
           ),
         ),
@@ -130,28 +146,28 @@ class _MoneyMasherState extends State with TickerProviderStateMixin {
                     alignment: Alignment.center,
                     children: [
                       Align(
-                        alignment: Alignment(0, -0.8),
+                        alignment: const Alignment(0, -0.8),
                         child: Container(
                           width: double.infinity,
                           color: Colors.black.withOpacity(0.75),
-                          padding: EdgeInsets.symmetric(vertical: 5),
-                          child: Text(
-                            'MONEY MASHER',
+                          padding: const EdgeInsets.symmetric(vertical: 5),
+                          child: const Text(
+                            "MONEY MASHER",
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 14, color: Colors.white),
                           ),
                         ),
                       ),
                       Align(
-                        alignment: Alignment(0, -0.6),
+                        alignment: const Alignment(0, -0.6),
                         child: Container(
                           width: double.infinity,
                           color: Colors.black.withOpacity(0.75),
-                          padding: EdgeInsets.symmetric(vertical: 15),
+                          padding: const EdgeInsets.symmetric(vertical: 15),
                           child: Text(
-                            '$_ClickCount Dollars',
+                            "$_clicks Dollars",
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 20, color: Colors.white),
+                            style: const TextStyle(fontSize: 20, color: Colors.white),
                           ),
                         ),
                       ),
@@ -165,25 +181,25 @@ class _MoneyMasherState extends State with TickerProviderStateMixin {
                               onExit: (_) => _onMouseExit(),
                               child: GestureDetector(
                                 onTap: () {
-                                  setState(() {
-                                    _ClickCount++;
-                                  });
+                                  _incrementClick();
                                 },
-                              child: AnimatedBuilder(
-                                animation:
-                                    Listenable.merge([_pulseAnimation, _hoverAnimation]),
-                                builder: (context, child) {
-                                  final scale = _hoverController.isAnimating ||
-                                          _hoverController.value == 1.0
-                                      ? _hoverAnimation.value
-                                      : _pulseAnimation.value;
-                                  return Transform.scale(
-                                    scale: scale,
-                                    child: child,
-                                  );
-                                },
-                                child: Image.asset('lib/assets/dollar.png'),
-                              ),                        ),
+                                child: AnimatedBuilder(
+                                  animation: Listenable.merge(
+                                      [_pulseAnimation, _hoverAnimation]),
+                                  builder: (context, child) {
+                                    final scale =
+                                        _hoverController.isAnimating ||
+                                                _hoverController.value == 1.0
+                                            ? _hoverAnimation.value
+                                            : _pulseAnimation.value;
+                                    return Transform.scale(
+                                      scale: scale,
+                                      child: child,
+                                    );
+                                  },
+                                  child: Image.asset("lib/assets/dollar.png"),
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -225,7 +241,7 @@ class _MoneyMasherState extends State with TickerProviderStateMixin {
             alignment: Alignment.centerLeft,
             child: Center(
               child: Text(
-                'Quests',
+                "Quests",
                 style:
                     TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
               ),
@@ -237,7 +253,7 @@ class _MoneyMasherState extends State with TickerProviderStateMixin {
             child: ListView.builder(
               itemCount: 5,
               itemBuilder: (context, index) => ListTile(
-                title: Text('Quest ${index + 1}',
+                title: Text("Quest ${index + 1}",
                     style: const TextStyle(color: Colors.white)),
               ),
             ),
@@ -258,7 +274,7 @@ class _MoneyMasherState extends State with TickerProviderStateMixin {
             alignment: Alignment.centerLeft,
             child: Center(
               child: Text(
-                'Shop',
+                "Shop",
                 style:
                     TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
               ),
@@ -270,7 +286,7 @@ class _MoneyMasherState extends State with TickerProviderStateMixin {
             child: ListView.builder(
               itemCount: 5,
               itemBuilder: (context, index) => ListTile(
-                title: Text('Shop Item ${index + 1}',
+                title: Text("Shop Item ${index + 1}",
                     style: const TextStyle(color: Colors.white)),
               ),
             ),
