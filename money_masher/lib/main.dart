@@ -1,4 +1,3 @@
-import "dart:math";
 import "package:flutter/material.dart";
 import "package:window_manager/window_manager.dart";
 import "db.dart";
