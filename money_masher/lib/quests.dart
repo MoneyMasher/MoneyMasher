@@ -1,88 +1,137 @@
 import 'package:flutter/material.dart';
+import "db.dart";
 
 class Quests extends StatefulWidget {
   final int totalClicks;
-  const Quests({Key? key, required this.totalClicks, required List<Quest> questList}) : super(key: key);
+  final List<int> clickTimes;
+  const Quests({Key? key, required this.totalClicks, required this.clickTimes}) : super(key: key);
 
   @override
   _QuestsState createState() => _QuestsState();
 }
 
 class _QuestsState extends State<Quests> {
-  late List<Quest> questList;
+  List<Quest> questList = [];
+  final db = DatabaseManager();
 
   @override
   void initState() {
     super.initState();
-    questList = [
-      Quest(title: "Click 100 Times", goal: 100),
-      Quest(title: "Click 1,000 Times", goal: 1000),
-      Quest(title: "Click 5,000 Times", goal: 5000),
-      Quest(title: "Click 100 Times in 60 Seconds", goal: 100, isTimed: true, timeLimit: 60),
-      Quest(title: "Click 100 Times in 45 Seconds", goal: 100, isTimed: true, timeLimit: 45),
-      Quest(title: "Click 100 Times in 30 Seconds", goal: 100, isTimed: true, timeLimit: 30),
-    ];
+    loadQuests();
+  }
+
+  void loadQuests() async {
+    var questsData = await db.getQuests();
+    List<Quest> loadedQuests = [];
+
+    for (var quest in questsData) {
+      loadedQuests.add(Quest(
+        id: quest['QuestID'] as int,
+        title: quest['QuestName'] as String,
+        goal: quest['Goal'] as int,
+        timeLimit: quest['TimeLimit'] as int,
+        completed: quest['Completed'] as int != 0,
+      ));
+    }
+
+    setState(() {
+      questList = loadedQuests;
+    });
+  }
+
+  void checkQuestCompletion(int index) async {
+    // Index is the index of the quest in the questList. Identify quests this way.
+    // newProgress is the current number of clicks.
+    int currentBoughtItems = await db.getShopItemsBought();
+    int currentClicks = widget.totalClicks;
+    List<int> clickTimes = widget.clickTimes;
+
+    // Total Clicks Events.
+    {}
+
+    // Quick Click Events.
+    if (clickTimes.length >= 100) {
+      int oldestTime = clickTimes[clickTimes.length - 100];
+      int latestTime = clickTimes[clickTimes.length - 1];
+      // These times are really easy and need to be made harder.
+      // We also need to add a check to ensure the quests are only completed once.
+      if (latestTime - oldestTime <= 60000) {
+        print("100 clicks in 60 seconds!");
+      }
+      if (latestTime - oldestTime <= 45000) {
+        print("100 clicks in 45 seconds!");
+      }
+      if (latestTime - oldestTime <= 30000) {
+        print("100 clicks in 30 seconds!");
+      }
+    }
+    
+    // Shop Events.
+    {}
   }
 
   @override
-Widget build(BuildContext context) {
-  return Column(
-    children: [
-      Container(
-        color: Colors.black.withOpacity(0.9),
-        width: double.infinity,
-        padding: const EdgeInsets.all(8),
-        child: const Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            "Quests",
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18),
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          color: Colors.black.withOpacity(0.9),
+          width: double.infinity,
+          padding: const EdgeInsets.all(8),
+          child: const Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              "Quests",
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18),
+            ),
           ),
         ),
-      ),
-      Expanded(
-        child: ListView.builder(
-          itemCount: questList.length,
-          itemBuilder: (context, index) {
-            var quest = questList[index];
-            int progressClicks = widget.totalClicks.clamp(0, quest.goal);
-            Color textColor = index % 2 == 0 ? Colors.white : Color.fromARGB(255, 245, 241, 2); // Alternate color
-            return ListTile(
-              title: Text(
-                quest.title,
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 16,
+        Expanded(
+          child: ListView.builder(
+            itemCount: questList.length,
+            itemBuilder: (context, index) {
+              var quest = questList[index];
+              int progressClicks = widget.totalClicks.clamp(0, quest.goal);
+              checkQuestCompletion(index);
+              Color textColor = index % 2 == 0 ? Colors.white : Color.fromARGB(255, 245, 241, 2);
+              return ListTile(
+                title: Text(
+                  quest.title,
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 16,
+                  ),
                 ),
-              ),
-              subtitle: LinearProgressIndicator(
-                value: progressClicks / quest.goal,
-                backgroundColor: Colors.grey,
-                color: Colors.green,
-              ),
-              trailing: Text(
-                "$progressClicks / ${quest.goal}",
-                style: const TextStyle(color: Colors.white, fontSize: 14), // Larger text
-              ),
-            );
-          },
+                subtitle: LinearProgressIndicator(
+                  value: progressClicks / quest.goal,
+                  backgroundColor: Colors.grey,
+                  color: Colors.green,
+                ),
+                trailing: Text(
+                  "$progressClicks / ${quest.goal}",
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              );
+            },
+          ),
         ),
-      ),
-    ],
-  );
- }
+      ],
+    );
+  }
 }
 
 class Quest {
+  final int id;
   final String title;
   final int goal;
-  final bool isTimed;
-  final int? timeLimit;
+  final int timeLimit;
+  final bool completed;
 
   Quest({
+    required this.id,
     required this.title,
     required this.goal,
-    this.isTimed = false,
-    this.timeLimit,
+    required this.timeLimit,
+    required this.completed,
   });
 }

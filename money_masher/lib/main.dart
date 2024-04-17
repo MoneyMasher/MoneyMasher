@@ -1,3 +1,4 @@
+import "dart:math";
 import "package:flutter/material.dart";
 import "package:window_manager/window_manager.dart";
 import "db.dart";
@@ -9,7 +10,7 @@ void main() async {
   WindowOptions windowOptions = const WindowOptions(
     size: Size(1280, 720),
     minimumSize: Size(1280, 720),
-    maximumSize: Size(1280, 720),
+    maximumSize: Size(3840, 2160),
     center: true,
     skipTaskbar: false,
   );
@@ -44,7 +45,6 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
   late Animation _pulseAnimation;
   late AnimationController _hoverController;
   late Animation _hoverAnimation;
-  int _dollars = 0;
   int _clicks = 0;
   int _multiplier = 1;
   List<int> _clickTimes = [];
@@ -72,14 +72,12 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
 
   _initializeApp() async {
     _clicks = await _db.getClicks();
-    _dollars = await _db.getDollars();
     setState(() {});
   }
 
   @override
   void dispose() {
     _db.updateClicks(_clicks);
-    _db.updateDollars(_dollars);
     _pulseController.dispose();
     _hoverController.dispose();
     super.dispose();
@@ -87,24 +85,23 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
 
   void _incrementClick() {
     setState(() {
-      _clicks + 1;
-      _dollars + (1 * _multiplier);
+      _clicks += (1 * _multiplier);
     });
     _db.updateClicks(_clicks);
-    _db.updateDollars(_dollars);
   }
 
   void _handleClickEvent() {
-    print("Click!");
     int now = DateTime.now().millisecondsSinceEpoch;
     _clickTimes.add(now);
     
     _incrementClick();
-    
-    // Keep _clickTimes list to 150 items to preserve memory.
-    if (_clickTimes.length >= 150) {
-      _clickTimes.removeRange(0, _clickTimes.length - 150);
-    }
+
+    setState(() {
+      // Keep _clickTimes list to 5000 items to preserve memory.
+      if (_clickTimes.length > 5000) {
+        _clickTimes.removeRange(0, _clickTimes.length - 5000);
+      }
+    });
   }
 
   void _onMouseEnter() {
@@ -131,15 +128,9 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
 
   @override
   Widget build(BuildContext context) {
-    List<Quest> questList = [
-      Quest(title: "Click 100 Times", goal: 100),
-      Quest(title: "Click 1,000 Times", goal: 1000),
-      Quest(title: "Click 5,000 Times", goal: 5000),
-      Quest(title: "Click 100 Times in 60 Seconds", goal: 100, isTimed: true, timeLimit: 60),
-      Quest(title: "Click 100 Times in 45 Seconds", goal: 100, isTimed: true, timeLimit: 45),
-      Quest(title: "Click 100 Times in 30 Seconds", goal: 100, isTimed: true, timeLimit: 30),
-    ];
-
+    double imageWidth = MediaQuery.of(context).size.width / 3;
+    double imageHeight = MediaQuery.of(context).size.height / 3;
+    
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -160,7 +151,7 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
               flex: 2,
               child: ColoredBox(
                 color: Colors.black.withOpacity(0.5),
-                child: _buildLeftColumn(questList),
+                child: _buildLeftColumn(),
               ),
             ),
             Container(
@@ -195,7 +186,7 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
                           color: Colors.black.withOpacity(0.75),
                           padding: const EdgeInsets.symmetric(vertical: 15),
                           child: Text(
-                            "$_dollars Dollars",
+                            "$_clicks Dollars",
                             textAlign: TextAlign.center,
                             style: const TextStyle(fontSize: 20, color: Colors.white),
                           ),
@@ -211,7 +202,7 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
                               onExit: (_) => _onMouseExit(),
                               child: GestureDetector(
                                 onTap: () {
-                                  _incrementClick();
+                                  _handleClickEvent();
                                 },
                                 child: AnimatedBuilder(
                                   animation: Listenable.merge(
@@ -227,7 +218,11 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
                                       child: child,
                                     );
                                   },
-                                  child: Image.asset("lib/assets/dollar.png"),
+                                  child: Image.asset(
+                                    "lib/assets/dollar.png",
+                                    width: imageWidth,
+                                    height: imageHeight,
+                                  ),
                                 ),
                               ),
                             ),
@@ -260,11 +255,11 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
     );
   }
 
-  Widget _buildLeftColumn(List<Quest> questList) {
+  Widget _buildLeftColumn() {
     return Column(
       children: [
         Expanded(
-          child: Quests(totalClicks: _clicks, clickTimes: _clickTimes, questList: questList),
+          child: Quests(totalClicks: _clicks, clickTimes: _clickTimes),
         ),
       ],
     );
