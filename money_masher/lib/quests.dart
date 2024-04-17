@@ -4,13 +4,14 @@ import "db.dart";
 class Quests extends StatefulWidget {
   final int totalClicks;
   final List<int> clickTimes;
-  const Quests({Key? key, required this.totalClicks, required this.clickTimes}) : super(key: key);
+  final int shopItemsBought;
+  const Quests({Key? key, required this.totalClicks, required this.clickTimes, required this.shopItemsBought}) : super(key: key);
 
   @override
-  _QuestsState createState() => _QuestsState();
+  QuestsState createState() => QuestsState();
 }
 
-class _QuestsState extends State<Quests> {
+class QuestsState extends State<Quests> {
   List<Quest> questList = [];
   final db = DatabaseManager();
 
@@ -41,7 +42,7 @@ class _QuestsState extends State<Quests> {
 
   void checkQuestCompletion(int index) async {
     // Index is the index of the quest in the questList. Identify quests this way.
-    int currentBoughtItems = await db.getShopItemsBought();
+    int currentBoughtItems = widget.shopItemsBought;
     int currentClicks = widget.totalClicks;
     List<int> clickTimes = widget.clickTimes;
 
@@ -49,7 +50,7 @@ class _QuestsState extends State<Quests> {
     {}
 
     // Quick Click Events.
-    if (clickTimes.length >= 100) {
+    if (clickTimes.length >= 250) {
       int oldestTime = clickTimes[clickTimes.length - 100];
       int latestTime = clickTimes[clickTimes.length - 1];
       // Examples. Not the same as what is set in the database.

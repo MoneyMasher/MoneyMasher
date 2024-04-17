@@ -46,6 +46,7 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
   late Animation _hoverAnimation;
   int _clicks = 0;
   int _multiplier = 1;
+  int _shopItemsBought = 0;
   List<int> _clickTimes = [];
   final _db = DatabaseManager();
 
@@ -71,6 +72,7 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
 
   _initializeApp() async {
     _clicks = await _db.getClicks();
+    _shopItemsBought = await _db.getShopItemsBought();
     setState(() {});
   }
 
@@ -80,6 +82,13 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
     _pulseController.dispose();
     _hoverController.dispose();
     super.dispose();
+  }
+
+  void _incrementShopItemsBought() {
+    setState(() {
+      _shopItemsBought++;
+    });
+    _db.updateShopItemsBought(_shopItemsBought);
   }
 
   void _incrementClick() {
@@ -258,7 +267,7 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
     return Column(
       children: [
         Expanded(
-          child: Quests(totalClicks: _clicks, clickTimes: _clickTimes),
+          child: Quests(totalClicks: _clicks, clickTimes: _clickTimes, shopItemsBought: _shopItemsBought),
         ),
       ],
     );
