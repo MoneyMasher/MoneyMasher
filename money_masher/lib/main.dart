@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:window_manager/window_manager.dart";
 import "db.dart";
+import "package:money_masher/quests.dart";
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -8,6 +9,7 @@ void main() async {
   WindowOptions windowOptions = const WindowOptions(
     size: Size(1280, 720),
     minimumSize: Size(1280, 720),
+    maximumSize: Size(1280, 720),
     center: true,
     skipTaskbar: false,
   );
@@ -37,12 +39,14 @@ class MoneyMasher extends StatefulWidget {
   MoneyMasherState createState() => MoneyMasherState();
 }
 
-class MoneyMasherState extends State with TickerProviderStateMixin {
+class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late Animation _pulseAnimation;
   late AnimationController _hoverController;
   late Animation _hoverAnimation;
+  int _dollars = 0;
   int _clicks = 0;
+  int _multiplier = 1;
   List<int> _clickTimes = [];
   final _db = DatabaseManager();
 
@@ -68,50 +72,26 @@ class MoneyMasherState extends State with TickerProviderStateMixin {
 
   _initializeApp() async {
     _clicks = await _db.getClicks();
+    _dollars = await _db.getDollars();
     setState(() {});
   }
 
   @override
   void dispose() {
     _db.updateClicks(_clicks);
+    _db.updateDollars(_dollars);
     _pulseController.dispose();
     _hoverController.dispose();
     super.dispose();
   }
 
-  void _handleQuests(timestamp) {
-    print("Handling Quests!");
-    print("Length: ${_clickTimes.length}");
-    // Total Clicks Events.
-    {}
-
-    // Quick Click Events.
-    if (_clickTimes.length >= 100) {
-      int oldestTime = _clickTimes[_clickTimes.length - 100];
-      int latestTime = _clickTimes[_clickTimes.length - 1];
-      // These times are really easy and need to be made harder.
-      // We also need to add a check to ensure the quests are only completed once.
-      if (latestTime - oldestTime <= 60000) {
-        print("100 clicks in 60 seconds!");
-      }
-      if (latestTime - oldestTime <= 45000) {
-        print("100 clicks in 45 seconds!");
-      }
-      if (latestTime - oldestTime <= 30000) {
-        print("100 clicks in 30 seconds!");
-      }
-    }
-
-    // Shop Events.
-    {}
-  }
-
-  void _incrementClicks() {
-    print("Incrementing Clicks!");
+  void _incrementClick() {
     setState(() {
-      _clicks++;
+      _clicks + 1;
+      _dollars + (1 * _multiplier);
     });
     _db.updateClicks(_clicks);
+    _db.updateDollars(_dollars);
   }
 
   void _handleClickEvent() {
@@ -119,8 +99,7 @@ class MoneyMasherState extends State with TickerProviderStateMixin {
     int now = DateTime.now().millisecondsSinceEpoch;
     _clickTimes.add(now);
     
-    _incrementClicks();
-    _handleQuests(now);
+    _incrementClick();
     
     // Keep _clickTimes list to 150 items to preserve memory.
     if (_clickTimes.length >= 150) {
@@ -152,6 +131,15 @@ class MoneyMasherState extends State with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    List<Quest> questList = [
+      Quest(title: "Click 100 Times", goal: 100),
+      Quest(title: "Click 1,000 Times", goal: 1000),
+      Quest(title: "Click 5,000 Times", goal: 5000),
+      Quest(title: "Click 100 Times in 60 Seconds", goal: 100, isTimed: true, timeLimit: 60),
+      Quest(title: "Click 100 Times in 45 Seconds", goal: 100, isTimed: true, timeLimit: 45),
+      Quest(title: "Click 100 Times in 30 Seconds", goal: 100, isTimed: true, timeLimit: 30),
+    ];
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -172,7 +160,7 @@ class MoneyMasherState extends State with TickerProviderStateMixin {
               flex: 2,
               child: ColoredBox(
                 color: Colors.black.withOpacity(0.5),
-                child: _buildLeftColumn(),
+                child: _buildLeftColumn(questList),
               ),
             ),
             Container(
@@ -207,7 +195,7 @@ class MoneyMasherState extends State with TickerProviderStateMixin {
                           color: Colors.black.withOpacity(0.75),
                           padding: const EdgeInsets.symmetric(vertical: 15),
                           child: Text(
-                            "$_clicks Dollars",
+                            "$_dollars Dollars",
                             textAlign: TextAlign.center,
                             style: const TextStyle(fontSize: 20, color: Colors.white),
                           ),
@@ -223,7 +211,7 @@ class MoneyMasherState extends State with TickerProviderStateMixin {
                               onExit: (_) => _onMouseExit(),
                               child: GestureDetector(
                                 onTap: () {
-                                  _handleClickEvent();
+                                  _incrementClick();
                                 },
                                 child: AnimatedBuilder(
                                   animation: Listenable.merge(
@@ -272,34 +260,11 @@ class MoneyMasherState extends State with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildLeftColumn() {
+  Widget _buildLeftColumn(List<Quest> questList) {
     return Column(
       children: [
-        Container(
-          color: Colors.black.withOpacity(0.9),
-          width: double.infinity,
-          padding: const EdgeInsets.all(8),
-          child: const Align(
-            alignment: Alignment.centerLeft,
-            child: Center(
-              child: Text(
-                "Quests",
-                style:
-                    TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-            ),
-          ),
-        ),
         Expanded(
-          child: Container(
-            child: ListView.builder(
-              itemCount: 5,
-              itemBuilder: (context, index) => ListTile(
-                title: Text("Quest ${index + 1}",
-                    style: const TextStyle(color: Colors.white)),
-              ),
-            ),
-          ),
+          child: Quests(totalClicks: _clicks, clickTimes: _clickTimes, questList: questList),
         ),
       ],
     );
