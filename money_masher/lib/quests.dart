@@ -41,7 +41,6 @@ class _QuestsState extends State<Quests> {
 
   void checkQuestCompletion(int index) async {
     // Index is the index of the quest in the questList. Identify quests this way.
-    // newProgress is the current number of clicks.
     int currentBoughtItems = await db.getShopItemsBought();
     int currentClicks = widget.totalClicks;
     List<int> clickTimes = widget.clickTimes;
@@ -53,8 +52,7 @@ class _QuestsState extends State<Quests> {
     if (clickTimes.length >= 100) {
       int oldestTime = clickTimes[clickTimes.length - 100];
       int latestTime = clickTimes[clickTimes.length - 1];
-      // These times are really easy and need to be made harder.
-      // We also need to add a check to ensure the quests are only completed once.
+      // Examples. Not the same as what is set in the database.
       if (latestTime - oldestTime <= 60000) {
         print("100 clicks in 60 seconds!");
       }
