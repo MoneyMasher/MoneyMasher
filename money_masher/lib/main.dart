@@ -123,7 +123,7 @@ class MoneyMasherState extends State with TickerProviderStateMixin {
     _handleQuests(now);
     
     // Keep _clickTimes list to 150 items to preserve memory.
-    if (_clickTimes.length > 150) {
+    if (_clickTimes.length >= 150) {
       _clickTimes.removeRange(0, _clickTimes.length - 150);
     }
   }
@@ -305,36 +305,127 @@ class MoneyMasherState extends State with TickerProviderStateMixin {
     );
   }
 
+  final List<String> titles = [
+    "Potion of 2x Clicks",
+    "Potion of 5x Clicks",
+    "Potion of 10x Clicks",
+    "Ritual of +1 Clicks",
+    "Beginner Money Printer",
+    "Intermediate Money Printer",
+    "Advanced Money Printer",
+    "Scroll of Rebirth",
+  ];
+
+
+  final List<String> descriptions = [
+    "Every click counts as 2x for 1 minute.",
+    "Every click counts as 5x for 5 minutes.",
+    "Every click counts as 10x for 10 minutes.",
+    "Permanently gain +1 to every click.",
+    "Get \$1 every 3 seconds for free.",
+    "Get \$10 every 3 seconds for free.",
+    "Get \$100 every 3 seconds for free.",
+    "Reset everything and gain a permanent 2x click multiplier.",
+  ];
+
+  final List<String> iconPaths = [
+    "lib/assets/shop_icons/icon1.png",
+    "lib/assets/shop_icons/icon2.png",
+    "lib/assets/shop_icons/icon3.png",
+    "lib/assets/shop_icons/icon4.png",
+    "lib/assets/shop_icons/icon5.png",
+    "lib/assets/shop_icons/icon6.png",
+    "lib/assets/shop_icons/icon7.png",
+    "lib/assets/shop_icons/icon8.png",
+  ];
+
   Widget _buildRightColumn() {
+    double width = MediaQuery.of(context).size.width;
+    double baseScale = width / 1280;
+    double fontSizeScale = baseScale * 10;
+    double imageSize = baseScale * 64;
+
     return Column(
       children: [
         Container(
           color: Colors.black.withOpacity(0.9),
           width: double.infinity,
           padding: const EdgeInsets.all(8),
-          child: const Align(
-            alignment: Alignment.centerLeft,
-            child: Center(
-              child: Text(
-                "Shop",
-                style:
-                    TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          child: Center(
+            child: Text(
+              "Shop",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                fontSize: fontSizeScale,
               ),
             ),
           ),
         ),
         Expanded(
-          child: Container(
-            child: ListView.builder(
-              itemCount: 5,
-              itemBuilder: (context, index) => ListTile(
-                title: Text("Shop Item ${index + 1}",
-                    style: const TextStyle(color: Colors.white)),
-              ),
+          child: GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 1.0,
+              crossAxisSpacing: 5,
+              mainAxisSpacing: 5,
             ),
+            itemCount: 8,
+            itemBuilder: (context, index) {
+              return InkWell(
+                onTap: () => _handleItemClick(index, context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: SingleChildScrollView(
+                            child: Text(
+                              titles[index],
+                              style: TextStyle(color: Colors.white, fontSize: fontSizeScale),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Image.asset(
+                        iconPaths[index],
+                        width: imageSize,
+                        height: imageSize,
+                      ),
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: SingleChildScrollView(
+                            child: Text(
+                              descriptions[index],
+                              style: TextStyle(color: Colors.white, fontSize: fontSizeScale * 0.8),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ],
     );
+  }
+
+  void _handleItemClick(int index, BuildContext context) {
+    print("Item $index clicked!");
   }
 }
