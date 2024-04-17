@@ -8,7 +8,6 @@ void main() async {
   WindowOptions windowOptions = const WindowOptions(
     size: Size(1280, 720),
     minimumSize: Size(1280, 720),
-    maximumSize: Size(1280, 720),
     center: true,
     skipTaskbar: false,
   );
@@ -44,6 +43,7 @@ class MoneyMasherState extends State with TickerProviderStateMixin {
   late AnimationController _hoverController;
   late Animation _hoverAnimation;
   int _clicks = 0;
+  List<int> _clickTimes = [];
   final _db = DatabaseManager();
 
   @override
@@ -79,11 +79,53 @@ class MoneyMasherState extends State with TickerProviderStateMixin {
     super.dispose();
   }
 
-  void _incrementClick() {
+  void _handleQuests(timestamp) {
+    print("Handling Quests!");
+    print("Length: ${_clickTimes.length}");
+    // Total Clicks Events.
+    {}
+
+    // Quick Click Events.
+    if (_clickTimes.length >= 100) {
+      int oldestTime = _clickTimes[_clickTimes.length - 100];
+      int latestTime = _clickTimes[_clickTimes.length - 1];
+      // These times are really easy and need to be made harder.
+      // We also need to add a check to ensure the quests are only completed once.
+      if (latestTime - oldestTime <= 60000) {
+        print("100 clicks in 60 seconds!");
+      }
+      if (latestTime - oldestTime <= 45000) {
+        print("100 clicks in 45 seconds!");
+      }
+      if (latestTime - oldestTime <= 30000) {
+        print("100 clicks in 30 seconds!");
+      }
+    }
+
+    // Shop Events.
+    {}
+  }
+
+  void _incrementClicks() {
+    print("Incrementing Clicks!");
     setState(() {
       _clicks++;
     });
     _db.updateClicks(_clicks);
+  }
+
+  void _handleClickEvent() {
+    print("Click!");
+    int now = DateTime.now().millisecondsSinceEpoch;
+    _clickTimes.add(now);
+    
+    _incrementClicks();
+    _handleQuests(now);
+    
+    // Keep _clickTimes list to 150 items to preserve memory.
+    if (_clickTimes.length > 150) {
+      _clickTimes.removeRange(0, _clickTimes.length - 150);
+    }
   }
 
   void _onMouseEnter() {
@@ -181,7 +223,7 @@ class MoneyMasherState extends State with TickerProviderStateMixin {
                               onExit: (_) => _onMouseExit(),
                               child: GestureDetector(
                                 onTap: () {
-                                  _incrementClick();
+                                  _handleClickEvent();
                                 },
                                 child: AnimatedBuilder(
                                   animation: Listenable.merge(
