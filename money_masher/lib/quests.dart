@@ -79,7 +79,7 @@ class _QuestsState extends State<Quests> {
           width: double.infinity,
           padding: const EdgeInsets.all(8),
           child: const Align(
-            alignment: Alignment.centerLeft,
+            alignment: Alignment.center,
             child: Text(
               "Quests",
               style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18),
