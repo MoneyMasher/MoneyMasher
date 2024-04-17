@@ -243,20 +243,6 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
   Widget _buildLeftColumn(List<Quest> questList) {
     return Column(
       children: [
-        Container(
-          color: Colors.black.withOpacity(0.9),
-          width: double.infinity,
-          padding: const EdgeInsets.all(8),
-          child: const Align(
-            alignment: Alignment.centerLeft,
-            child: Center(
-              child: Text(
-                "Quests",
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-            ),
-          ),
-        ),
         Expanded(
           child: Quests(totalClicks: _clicks, questList: questList),
         ),
