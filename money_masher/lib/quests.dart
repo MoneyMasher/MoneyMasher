@@ -80,7 +80,7 @@ class QuestsState extends State<Quests> {
           child: const Align(
             alignment: Alignment.center,
             child: Text(
-              "Quests",
+              "QUESTS",
               style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18),
             ),
           ),

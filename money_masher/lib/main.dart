@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:window_manager/window_manager.dart";
 import "db.dart";
+import 'dart:async';
 import "package:money_masher/quests.dart";
 
 void main() async {
@@ -47,8 +48,20 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
   int _clicks = 0;
   int _multiplier = 1;
   int _shopItemsBought = 0;
+  int _forFreePeriodically = 0;
   List<int> _clickTimes = [];
   final _db = DatabaseManager();
+  Timer? _periodicTimer;
+  int _currentRebirth = 0;
+  List<String>? _titles;
+  int _2xPrice = 900;
+  int _5xPrice = 2000;
+  int _10xPrice = 3500;
+  int _plus1Price = 5000;
+  int _beginnerPrinterPrice = 50;
+  int _intermediatePrinterPrice = 450;
+  int _advancedPrinterPrice = 4000;
+  int _rebirthPrice = 50000;
 
   @override
   void initState() {
@@ -73,7 +86,12 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
   _initializeApp() async {
     _clicks = await _db.getClicks();
     _shopItemsBought = await _db.getShopItemsBought();
+    _multiplier = await _db.getMultiplier();
+    _forFreePeriodically = await _db.getForFreePeriodically();
     setState(() {});
+    _periodicTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      _incrementForFreePeriodically();
+    });
   }
 
   @override
@@ -81,6 +99,7 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
     _db.updateClicks(_clicks);
     _pulseController.dispose();
     _hoverController.dispose();
+    _periodicTimer?.cancel();
     super.dispose();
   }
 
@@ -89,6 +108,12 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
       _shopItemsBought++;
     });
     _db.updateShopItemsBought(_shopItemsBought);
+  }
+
+  void _incrementForFreePeriodically() async {
+    setState(() {
+      _clicks += _forFreePeriodically;
+    });
   }
 
   void _incrementClick() {
@@ -273,17 +298,18 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
     );
   }
 
-  final List<String> titles = [
-    "Potion of 2x Clicks",
-    "Potion of 5x Clicks",
-    "Potion of 10x Clicks",
-    "Ritual of +1 Clicks",
-    "Beginner Money Printer",
-    "Intermediate Money Printer",
-    "Advanced Money Printer",
-    "Scroll of Rebirth",
-  ];
-
+  List<String> get titles {
+    return _titles ??= [
+      "[\$$_2xPrice] Potion of +2 Temp Clicks",
+      "[\$$_5xPrice] Potion of +5 Temp Clicks",
+      "[\$$_10xPrice] Potion of +10 Temp Clicks",
+      "[\$$_plus1Price] Ritual of +1 Perma Clicks",
+      "[\$$_beginnerPrinterPrice] Beginner Money Printer",
+      "[\$$_intermediatePrinterPrice] Intermediate Money Printer",
+      "[\$$_advancedPrinterPrice] Advanced Money Printer",
+      "[\$$_rebirthPrice] Scroll of Rebirth",
+    ];
+  }
 
   final List<String> descriptions = [
     "Every click counts as 2x for 1 minute.",
@@ -297,14 +323,14 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
   ];
 
   final List<String> iconPaths = [
-    "lib/assets/shop_icons/icon1.png",
-    "lib/assets/shop_icons/icon2.png",
-    "lib/assets/shop_icons/icon3.png",
-    "lib/assets/shop_icons/icon4.png",
-    "lib/assets/shop_icons/icon5.png",
-    "lib/assets/shop_icons/icon6.png",
-    "lib/assets/shop_icons/icon7.png",
-    "lib/assets/shop_icons/icon8.png",
+    "lib/assets/shop_icons/potion_red.png",
+    "lib/assets/shop_icons/potion_green.png",
+    "lib/assets/shop_icons/potion_blue.png",
+    "lib/assets/shop_icons/ritual_plus.png",
+    "lib/assets/shop_icons/money_printer_beginner.png",
+    "lib/assets/shop_icons/money_printer_intermediate.png",
+    "lib/assets/shop_icons/money_printer_advanced.png",
+    "lib/assets/shop_icons/scroll_rebirth.png",
   ];
 
   Widget _buildRightColumn() {
@@ -321,11 +347,11 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
           padding: const EdgeInsets.all(8),
           child: Center(
             child: Text(
-              "Shop",
+              "SHOP",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
-                fontSize: fontSizeScale,
+                fontSize: 18,
               ),
             ),
           ),
@@ -393,7 +419,109 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
     );
   }
 
-  void _handleItemClick(int index, BuildContext context) {
-    print("Item $index clicked!");
+  void _handleItemClick(int index, BuildContext context) async {
+    if (index == 0 && _clicks >= 900) {
+      _clicks -= 900;
+      _shopItemsBought++;
+      await _db.updateShopItemsBought(_shopItemsBought);
+      await _handlePlus2Clicks();
+    } else if (index == 1 && _clicks >= 2000) {
+      _clicks -= 2000;
+      _shopItemsBought++;
+      await _db.updateShopItemsBought(_shopItemsBought);
+      await _handlePlus5Clicks();
+    } else if (index == 2 && _clicks >= 3500) {
+      _clicks -= 3500;
+      _shopItemsBought++;
+      await _db.updateShopItemsBought(_shopItemsBought);
+      await _handlePlus10Clicks();
+    } else if (index == 3 && _clicks >= 5000) {
+      _multiplier++;
+      _clicks -= 5000;
+      _shopItemsBought++;
+      await _db.updateShopItemsBought(_shopItemsBought);
+      await _db.updateMultiplier(await _db.getMultiplier() + 1);
+    } else if (index == 4 && _clicks >= 50) {
+      _forFreePeriodically += 1;
+      _clicks -= 50;
+      _shopItemsBought++;
+      await _db.updateShopItemsBought(_shopItemsBought);
+      await _db.updateForFreePeriodically(_forFreePeriodically);
+    } else if (index == 5 && _clicks >= 500) {
+      _forFreePeriodically += 10;
+      _clicks -= 500;
+      _shopItemsBought++;
+      await _db.updateShopItemsBought(_shopItemsBought);
+      await _db.updateForFreePeriodically(_forFreePeriodically);
+    } else if (index == 6 && _clicks >= 5000) {
+      _forFreePeriodically += 100;
+      _clicks -= 5000;
+      _shopItemsBought++;
+      await _db.updateShopItemsBought(_shopItemsBought);
+      await _db.updateForFreePeriodically(_forFreePeriodically);
+    } else if (index == 7 && _clicks >= 50000) {
+      await _handleScrollOfRebirth();
+    }
+    setState(() {
+    });
+  }
+
+  Future<void> _handleScrollOfRebirth() async {
+    _currentRebirth += 1;
+    await _db.updateMultiplier(2);
+    await _db.updateClicks(0);
+    await _db.updateShopItemsBought(0);
+    await _db.updateForFreePeriodically(0);
+    int currentRebirth = await _db.getRebirths();
+    setState(() {
+      _clicks = 0;
+      _shopItemsBought = 0;
+      _forFreePeriodically = 0;
+      _multiplier = 2 * (currentRebirth + 1);
+      _forFreePeriodically = 0;
+    });
+    await _db.updateRebirths(currentRebirth + 1);
+  }
+
+  Future<void> _handlePlus2Clicks() async {
+    setState(() {
+      _multiplier += 2;
+    });
+    int status = _currentRebirth;
+    await Future.delayed(const Duration(minutes: 1));
+    if (status != _currentRebirth) {
+      return;
+    }
+    setState(() {
+      _multiplier -= 2;
+    });
+  }
+
+  Future<void> _handlePlus5Clicks() async {
+    setState(() {
+      _multiplier += 5;
+    });
+    int status = _currentRebirth;
+    await Future.delayed(const Duration(minutes: 5));
+    if (status != _currentRebirth) {
+      return;
+    }
+    setState(() {
+      _multiplier -= 5;
+    });
+  }
+
+  Future<void> _handlePlus10Clicks() async {
+    setState(() {
+      _multiplier += 10;
+    });
+    int status = _currentRebirth;
+    await Future.delayed(const Duration(minutes: 10));
+    if (status != _currentRebirth) {
+      return;
+    }
+    setState(() {
+      _multiplier -= 10;
+    });
   }
 }

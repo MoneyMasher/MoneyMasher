@@ -24,8 +24,8 @@ class DatabaseManager {
     String path = join(folderPath, "mm.db");
     return await openDatabase(path, version: 1, onOpen: (db) {},
         onCreate: (Database db, int version) async {
-      await db.execute("CREATE TABLE data (id INTEGER PRIMARY KEY, Clicks INTEGER, ShopItemsBought INTEGER)");
-      await db.insert("data", {"id": 1, "Clicks": 0, "ShopItemsBought": 0}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.execute("CREATE TABLE data (id INTEGER PRIMARY KEY, Clicks INTEGER, ShopItemsBought INTEGER, Multiplier INTEGER, ForFreePeriodically INTEGER, Rebirths INTEGER)");
+      await db.insert("data", {"id": 1, "Clicks": 0, "ShopItemsBought": 0, "Multiplier": 1, "ForFreePeriodically": 0, "Rebirths": 0}, conflictAlgorithm: ConflictAlgorithm.ignore);
       await db.execute("CREATE TABLE quests (QuestID INTEGER UNIQUE, QuestName TEXT, Goal INTEGER, TimeLimit INTEGER, Completed INTEGER)");
       await db.insert("quests", {
         "QuestID": 1, "QuestName": "Click 100 Times", "Goal": 100, "TimeLimit": 0, "Completed": 0
@@ -84,6 +84,33 @@ class DatabaseManager {
     return 0;
   }
 
+  Future<int> getMultiplier() async {
+    final db = await database;
+    var result = await db.query("data", where: "id = 1");
+    if (result.isNotEmpty) {
+      return result.first["Multiplier"] as int;
+    }
+    return 1;
+  }
+
+  Future<int> getForFreePeriodically() async {
+    final db = await database;
+    var result = await db.query("data", where: "id = 1");
+    if (result.isNotEmpty) {
+      return result.first["ForFreePeriodically"] as int;
+    }
+    return 0;
+  }
+
+  Future<int> getRebirths() async {
+    final db = await database;
+    var result = await db.query("data", where: "id = 1");
+    if (result.isNotEmpty) {
+      return result.first["Rebirths"] as int;
+    }
+    return 0;
+  }
+
   Future<int> getQuestCompletion(int questID) async {
     final db = await database;
     var result = await db.query("quests", where: "QuestID = $questID");
@@ -106,6 +133,21 @@ class DatabaseManager {
   Future<void> updateShopItemsBought(int items) async {
     final db = await database;
     await db.update("data", {"ShopItemsBought": items}, where: "id = 1");
+  }
+
+  Future<void> updateMultiplier(int multiplier) async {
+    final db = await database;
+    await db.update("data", {"Multiplier": multiplier}, where: "id = 1");
+  }
+
+  Future<void> updateForFreePeriodically(int forFree) async {
+    final db = await database;
+    await db.update("data", {"ForFreePeriodically": forFree}, where: "id = 1");
+  }
+  
+  Future<void> updateRebirths(int rebirths) async {
+    final db = await database;
+    await db.update("data", {"Rebirths": rebirths}, where: "id = 1");
   }
 
   Future<void> updateQuestCompletion(int questID) async {
