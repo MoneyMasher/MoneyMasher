@@ -1,15 +1,18 @@
-import "package:flutter/material.dart";
-import "package:window_manager/window_manager.dart";
-import "db.dart";
 import 'dart:async';
+
+import "package:flutter/material.dart";
 import "package:money_masher/quests.dart";
+import "package:window_manager/window_manager.dart";
+
+import "db.dart";
+import "menu.dart";
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await windowManager.ensureInitialized();
   WindowOptions windowOptions = const WindowOptions(
     size: Size(1280, 720),
-    minimumSize: Size(1280, 720),
+    minimumSize: Size(800, 600),
     maximumSize: Size(3840, 2160),
     center: true,
     skipTaskbar: false,
@@ -40,7 +43,8 @@ class MoneyMasher extends StatefulWidget {
   MoneyMasherState createState() => MoneyMasherState();
 }
 
-class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin {
+class MoneyMasherState extends State<MoneyMasher>
+    with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late Animation _pulseAnimation;
   late AnimationController _hoverController;
@@ -72,7 +76,7 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
       vsync: this,
     )..repeat(reverse: true);
     _pulseAnimation = Tween(begin: 0.85, end: 1.0).animate(_pulseController);
-    
+
     _hoverController = AnimationController(
       duration: const Duration(milliseconds: 900),
       vsync: this,
@@ -126,7 +130,7 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
   void _handleClickEvent() {
     int now = DateTime.now().millisecondsSinceEpoch;
     _clickTimes.add(now);
-    
+
     _incrementClick();
 
     setState(() {
@@ -163,7 +167,7 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
   Widget build(BuildContext context) {
     double imageWidth = MediaQuery.of(context).size.width / 3;
     double imageHeight = MediaQuery.of(context).size.height / 3;
-    
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -203,12 +207,15 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
                         alignment: const Alignment(0, -0.8),
                         child: Container(
                           width: double.infinity,
-                          color: Colors.black.withOpacity(0.75),
+                          color: Colors.transparent,
                           padding: const EdgeInsets.symmetric(vertical: 5),
                           child: const Text(
                             "MONEY MASHER",
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 14, color: Colors.white),
+                            style: TextStyle(
+                                fontSize: 40,
+                                color: Color.fromRGBO(199, 219, 42, 1),
+                                fontFamily: 'LilitaOne'),
                           ),
                         ),
                       ),
@@ -217,14 +224,18 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
                         child: Container(
                           width: double.infinity,
                           color: Colors.black.withOpacity(0.75),
-                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          padding: const EdgeInsets.symmetric(vertical: 5),
                           child: Text(
                             "$_clicks Dollars",
                             textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 20, color: Colors.white),
+                            style: const TextStyle(
+                                fontSize: 14, color: Colors.white),
                           ),
                         ),
                       ),
+                      Align(
+                          alignment: const Alignment(0.95, -0.98),
+                          child: MenuButton()),
                       Container(
                         padding: const EdgeInsets.all(150),
                         child: Column(
@@ -292,7 +303,10 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
     return Column(
       children: [
         Expanded(
-          child: Quests(totalClicks: _clicks, clickTimes: _clickTimes, shopItemsBought: _shopItemsBought),
+          child: Quests(
+              totalClicks: _clicks,
+              clickTimes: _clickTimes,
+              shopItemsBought: _shopItemsBought),
         ),
       ],
     );
@@ -383,7 +397,8 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
                           child: SingleChildScrollView(
                             child: Text(
                               titles[index],
-                              style: TextStyle(color: Colors.white, fontSize: fontSizeScale),
+                              style: TextStyle(
+                                  color: Colors.white, fontSize: fontSizeScale),
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -402,7 +417,9 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
                           child: SingleChildScrollView(
                             child: Text(
                               descriptions[index],
-                              style: TextStyle(color: Colors.white, fontSize: fontSizeScale * 0.8),
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: fontSizeScale * 0.8),
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -462,8 +479,7 @@ class MoneyMasherState extends State<MoneyMasher> with TickerProviderStateMixin 
     } else if (index == 7 && _clicks >= 50000) {
       await _handleScrollOfRebirth();
     }
-    setState(() {
-    });
+    setState(() {});
   }
 
   Future<void> _handleScrollOfRebirth() async {
