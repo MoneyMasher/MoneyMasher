@@ -72,9 +72,8 @@ class QuestsState extends State<Quests> {
         quest.progressPercent = clampDouble(currentClicks / quest.goal, 0, 100);
         if (currentClicks > quest.goal) {
           currentClicks = quest.goal;
-        } else {
-          quest.progress = currentClicks;
         }
+        quest.progress = currentClicks;
       } else if (quest.type == "Quick") {
         if (clickTimes.isEmpty) {
           continue;
