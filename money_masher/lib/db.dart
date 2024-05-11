@@ -26,41 +26,41 @@ class DatabaseManager {
         onCreate: (Database db, int version) async {
       await db.execute("CREATE TABLE data (id INTEGER PRIMARY KEY, Clicks INTEGER, ShopItemsBought INTEGER, Multiplier INTEGER, ForFreePeriodically INTEGER, Rebirths INTEGER)");
       await db.insert("data", {"id": 1, "Clicks": 0, "ShopItemsBought": 0, "Multiplier": 1, "ForFreePeriodically": 0, "Rebirths": 0}, conflictAlgorithm: ConflictAlgorithm.ignore);
-      await db.execute("CREATE TABLE quests (QuestID INTEGER UNIQUE, QuestName TEXT, Goal INTEGER, TimeLimit INTEGER, Completed INTEGER)");
+      await db.execute("CREATE TABLE quests (QuestID INTEGER UNIQUE, QuestName TEXT, QuestType TEXT, Goal INTEGER, Reward INTEGER, TimeLimit INTEGER, Completed INTEGER)");
       await db.insert("quests", {
-        "QuestID": 1, "QuestName": "Click 100 Times", "Goal": 100, "TimeLimit": 0, "Completed": 0
+        "QuestID": 1, "QuestName": "Click 100 Times", "QuestType": "Click", "Goal": 100, "Reward": 100, "TimeLimit": 0, "Completed": 0
         }, conflictAlgorithm: ConflictAlgorithm.ignore
       );
       await db.insert("quests", {
-        "QuestID": 2, "QuestName": "Click 1,000 Times", "Goal": 1000, "TimeLimit": 0, "Completed": 0
+        "QuestID": 2, "QuestName": "Click 1,000 Times", "QuestType": "Click", "Goal": 1000, "Reward": 1000, "TimeLimit": 0, "Completed": 0
         }, conflictAlgorithm: ConflictAlgorithm.ignore
       );
       await db.insert("quests", {
-        "QuestID": 3, "QuestName": "Click 5,000 Times", "Goal": 500, "TimeLimit": 0, "Completed": 0
+        "QuestID": 3, "QuestName": "Click 5,000 Times", "QuestType": "Click", "Goal": 500, "Reward": 5000, "TimeLimit": 0, "Completed": 0
         }, conflictAlgorithm: ConflictAlgorithm.ignore
       );
       await db.insert("quests", {
-        "QuestID": 4, "QuestName": "Click 250 Times in 60 Seconds", "Goal": 250, "TimeLimit": 60, "Completed": 0
+        "QuestID": 4, "QuestName": "Click 250 Times in 60 Seconds", "QuestType": "Quick", "Goal": 250, "Reward": 1000, "TimeLimit": 60, "Completed": 0
         }, conflictAlgorithm: ConflictAlgorithm.ignore
       );
       await db.insert("quests", {
-        "QuestID": 5, "QuestName": "Click 500 Times in 60 Seconds", "Goal": 500, "TimeLimit": 60, "Completed": 0
+        "QuestID": 5, "QuestName": "Click 500 Times in 60 Seconds", "QuestType": "Quick", "Goal": 500, "Reward": 2000, "TimeLimit": 60, "Completed": 0
         }, conflictAlgorithm: ConflictAlgorithm.ignore
       );
       await db.insert("quests", {
-        "QuestID": 6, "QuestName": "Click 1000 Times in 60 Seconds", "Goal": 1000, "TimeLimit": 60, "Completed": 0
+        "QuestID": 6, "QuestName": "Click 1000 Times in 60 Seconds", "QuestType": "Quick", "Goal": 1000, "Reward": 5000, "TimeLimit": 60, "Completed": 0
         }, conflictAlgorithm: ConflictAlgorithm.ignore
       );
       await db.insert("quests", {
-        "QuestID": 7, "QuestName": "Buy 1 Shop Item", "Goal": 1, "TimeLimit": 0, "Completed": 0
+        "QuestID": 7, "QuestName": "Buy 1 Shop Item", "QuestType": "Shop", "Goal": 1, "Reward": 250, "TimeLimit": 0, "Completed": 0
         }, conflictAlgorithm: ConflictAlgorithm.ignore
       );
       await db.insert("quests", {
-        "QuestID": 8, "QuestName": "Buy 10 Shop Items", "Goal": 10, "TimeLimit": 0, "Completed": 0
+        "QuestID": 8, "QuestName": "Buy 10 Shop Items", "QuestType": "Shop", "Goal": 10, "Reward": 2500, "TimeLimit": 0, "Completed": 0
         }, conflictAlgorithm: ConflictAlgorithm.ignore
       );
       await db.insert("quests", {
-        "QuestID": 9, "QuestName": "Buy 25 Shop Itens", "Goal": 25, "TimeLimit": 0, "Completed": 0
+        "QuestID": 9, "QuestName": "Buy 25 Shop Items", "QuestType": "Shop", "Goal": 25, "Reward": 7500, "TimeLimit": 0, "Completed": 0
         }, conflictAlgorithm: ConflictAlgorithm.ignore
       );
     });
@@ -150,8 +150,8 @@ class DatabaseManager {
     await db.update("data", {"Rebirths": rebirths}, where: "id = 1");
   }
 
-  Future<void> updateQuestCompletion(int questID) async {
+  Future<void> updateQuestCompletion(int questID, int status) async {
     final db = await database;
-    await db.update("quests", {"Completed": 1}, where: "QuestID = $questID");
+    await db.update("quests", {"Completed": status}, where: "QuestID = $questID");
   }
 }

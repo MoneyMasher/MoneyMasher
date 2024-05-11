@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import "db.dart";
 
@@ -5,7 +6,15 @@ class Quests extends StatefulWidget {
   final int totalClicks;
   final List<int> clickTimes;
   final int shopItemsBought;
-  const Quests({Key? key, required this.totalClicks, required this.clickTimes, required this.shopItemsBought}) : super(key: key);
+  final Function(int) updateRewards;
+  
+  const Quests({
+    Key? key, 
+    required this.totalClicks, 
+    required this.clickTimes, 
+    required this.shopItemsBought,
+    required this.updateRewards,
+    }) : super(key: key);
 
   @override
   QuestsState createState() => QuestsState();
@@ -29,7 +38,9 @@ class QuestsState extends State<Quests> {
       loadedQuests.add(Quest(
         id: quest['QuestID'] as int,
         title: quest['QuestName'] as String,
+        type: quest['QuestType'] as String,
         goal: quest['Goal'] as int,
+        reward: quest['Reward'] as int,
         timeLimit: quest['TimeLimit'] as int,
         completed: quest['Completed'] as int != 0,
       ));
@@ -40,33 +51,69 @@ class QuestsState extends State<Quests> {
     });
   }
 
-  void checkQuestCompletion(int index) async {
-    // Index is the index of the quest in the questList. Identify quests this way.
+  void checkQuestCompletion() async {
     int currentBoughtItems = widget.shopItemsBought;
     int currentClicks = widget.totalClicks;
     List<int> clickTimes = widget.clickTimes;
 
-    // Total Clicks Events.
-    {}
+    for (var quest in questList) {
+      if (quest.completed) {
+        continue;
+      }
 
-    // Quick Click Events.
-    if (clickTimes.length >= 250) {
-      int oldestTime = clickTimes[clickTimes.length - 100];
-      int latestTime = clickTimes[clickTimes.length - 1];
-      // Examples. Not the same as what is set in the database.
-      if (latestTime - oldestTime <= 60000) {
-        print("100 clicks in 60 seconds!");
-      }
-      if (latestTime - oldestTime <= 45000) {
-        print("100 clicks in 45 seconds!");
-      }
-      if (latestTime - oldestTime <= 30000) {
-        print("100 clicks in 30 seconds!");
+      if (quest.type == "Click") {
+        if (currentClicks >= quest.goal) {
+          quest.completed = true;
+          await db.updateQuestCompletion(quest.id, 1);
+          setState(() {
+            widget.updateRewards(quest.reward);
+          });
+        }
+        quest.progressPercent = clampDouble(currentClicks / quest.goal, 0, 100);
+        if (currentClicks > quest.goal) {
+          currentClicks = quest.goal;
+        } else {
+          quest.progress = currentClicks;
+        }
+      } else if (quest.type == "Quick") {
+        if (clickTimes.isEmpty) {
+          continue;
+        }
+        int goal = quest.goal;
+        int absGoal = clickTimes.length < goal ? clickTimes.length : goal;
+        int oldestClickTime = clickTimes[clickTimes.length - absGoal];
+        int latestClickTime = clickTimes[clickTimes.length - 1];
+        int clicksWithinTimeLimit = 0;
+        for (int i = clickTimes.length - absGoal; i < clickTimes.length; i++) {
+          if (clickTimes[i] >= latestClickTime - (quest.timeLimit * 1000)) {
+            clicksWithinTimeLimit++;
+          }
+        }
+        int timeBetweenLatestAndOldest = latestClickTime - oldestClickTime;
+        if (timeBetweenLatestAndOldest <= (quest.timeLimit * 1000) && clickTimes.length >= goal) {
+          quest.completed = true;
+          await db.updateQuestCompletion(quest.id, 1);
+          setState(() {
+            widget.updateRewards(quest.reward);
+          });
+          quest.progressPercent = 100;
+          quest.progress = goal;
+        } else {
+          quest.progressPercent = clampDouble(clicksWithinTimeLimit / goal, 0, 100);
+          quest.progress = clicksWithinTimeLimit;
+        }
+      } else if (quest.type == "Shop") {
+        if (currentBoughtItems >= quest.goal) {
+          quest.completed = true;
+          await db.updateQuestCompletion(quest.id, 1);
+          setState(() {
+            widget.updateRewards(quest.reward);
+          });
+        }
+        quest.progressPercent = clampDouble(currentBoughtItems / quest.goal, 0, 100);
+        quest.progress = currentBoughtItems;
       }
     }
-    
-    // Shop Events.
-    {}
   }
 
   @override
@@ -90,8 +137,7 @@ class QuestsState extends State<Quests> {
             itemCount: questList.length,
             itemBuilder: (context, index) {
               var quest = questList[index];
-              int progressClicks = widget.totalClicks.clamp(0, quest.goal);
-              checkQuestCompletion(index);
+              checkQuestCompletion();
               Color textColor = index % 2 == 0 ? Colors.white : Color.fromARGB(255, 245, 241, 2);
               return ListTile(
                 title: Text(
@@ -102,12 +148,12 @@ class QuestsState extends State<Quests> {
                   ),
                 ),
                 subtitle: LinearProgressIndicator(
-                  value: progressClicks / quest.goal,
+                  value: quest.progressPercent,
                   backgroundColor: Colors.grey,
                   color: Colors.green,
                 ),
                 trailing: Text(
-                  "$progressClicks / ${quest.goal}",
+                  "${quest.progress} / ${quest.goal}",
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                 ),
               );
@@ -122,15 +168,21 @@ class QuestsState extends State<Quests> {
 class Quest {
   final int id;
   final String title;
+  final String type;
   final int goal;
+  final int reward;
   final int timeLimit;
-  final bool completed;
+  bool completed;
+  double progressPercent;
+  int progress;
 
   Quest({
     required this.id,
     required this.title,
+    required this.type,
     required this.goal,
+    required this.reward,
     required this.timeLimit,
     required this.completed,
-  });
+  }) : progress = 0, progressPercent = 0.0;
 }

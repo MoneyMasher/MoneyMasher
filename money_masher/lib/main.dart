@@ -120,6 +120,13 @@ class MoneyMasherState extends State<MoneyMasher>
     });
   }
 
+  void _addQuestReward(int reward) {
+    setState(() {
+      _clicks += reward;
+    });
+    _db.updateClicks(_clicks);
+  }
+
   void _incrementClick() {
     setState(() {
       _clicks += (1 * _multiplier);
@@ -304,9 +311,11 @@ class MoneyMasherState extends State<MoneyMasher>
       children: [
         Expanded(
           child: Quests(
-              totalClicks: _clicks,
-              clickTimes: _clickTimes,
-              shopItemsBought: _shopItemsBought),
+            totalClicks: _clicks,
+            clickTimes: _clickTimes,
+            shopItemsBought: _shopItemsBought,
+            updateRewards: _addQuestReward
+          )
         ),
       ],
     );
