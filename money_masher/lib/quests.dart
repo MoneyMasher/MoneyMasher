@@ -57,22 +57,18 @@ class QuestsState extends State<Quests> {
     List<int> clickTimes = widget.clickTimes;
 
     for (var quest in questList) {
-      if (quest.completed) {
-        continue;
-      }
-
       if (quest.type == "Click") {
-        if (currentClicks >= quest.goal) {
+        if (!quest.completed && currentClicks >= quest.goal) {
           quest.completed = true;
           await db.updateQuestCompletion(quest.id, 1);
           setState(() {
             widget.updateRewards(quest.reward);
           });
         }
-        quest.progressPercent = clampDouble(currentClicks / quest.goal, 0, 100);
         if (currentClicks > quest.goal) {
           currentClicks = quest.goal;
         }
+        quest.progressPercent = clampDouble(currentClicks / quest.goal, 0, 100);
         quest.progress = currentClicks;
       } else if (quest.type == "Quick") {
         if (clickTimes.isEmpty) {
@@ -89,7 +85,7 @@ class QuestsState extends State<Quests> {
           }
         }
         int timeBetweenLatestAndOldest = latestClickTime - oldestClickTime;
-        if (timeBetweenLatestAndOldest <= (quest.timeLimit * 1000) && clickTimes.length >= goal) {
+        if (!quest.completed && timeBetweenLatestAndOldest <= (quest.timeLimit * 1000) && clickTimes.length >= goal) {
           quest.completed = true;
           await db.updateQuestCompletion(quest.id, 1);
           setState(() {
@@ -98,16 +94,22 @@ class QuestsState extends State<Quests> {
           quest.progressPercent = 100;
           quest.progress = goal;
         } else {
+          if (clicksWithinTimeLimit > goal) {
+            clicksWithinTimeLimit = goal;
+          }
           quest.progressPercent = clampDouble(clicksWithinTimeLimit / goal, 0, 100);
           quest.progress = clicksWithinTimeLimit;
         }
       } else if (quest.type == "Shop") {
-        if (currentBoughtItems >= quest.goal) {
+        if (!quest.completed && currentBoughtItems >= quest.goal) {
           quest.completed = true;
           await db.updateQuestCompletion(quest.id, 1);
           setState(() {
             widget.updateRewards(quest.reward);
           });
+        }
+        if (currentBoughtItems > quest.goal) {
+          currentBoughtItems = quest.goal;
         }
         quest.progressPercent = clampDouble(currentBoughtItems / quest.goal, 0, 100);
         quest.progress = currentBoughtItems;

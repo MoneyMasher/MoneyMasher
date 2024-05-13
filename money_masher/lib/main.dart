@@ -449,40 +449,47 @@ class MoneyMasherState extends State<MoneyMasher>
     if (index == 0 && _clicks >= 900) {
       _clicks -= 900;
       _shopItemsBought++;
+      await _db.updateClicks(_clicks);
       await _db.updateShopItemsBought(_shopItemsBought);
       await _handlePlus2Clicks();
     } else if (index == 1 && _clicks >= 2000) {
       _clicks -= 2000;
       _shopItemsBought++;
+      await _db.updateClicks(_clicks);
       await _db.updateShopItemsBought(_shopItemsBought);
       await _handlePlus5Clicks();
     } else if (index == 2 && _clicks >= 3500) {
       _clicks -= 3500;
       _shopItemsBought++;
+      await _db.updateClicks(_clicks);
       await _db.updateShopItemsBought(_shopItemsBought);
       await _handlePlus10Clicks();
     } else if (index == 3 && _clicks >= 5000) {
       _multiplier++;
       _clicks -= 5000;
       _shopItemsBought++;
+      await _db.updateClicks(_clicks);
       await _db.updateShopItemsBought(_shopItemsBought);
       await _db.updateMultiplier(await _db.getMultiplier() + 1);
     } else if (index == 4 && _clicks >= 50) {
       _forFreePeriodically += 1;
       _clicks -= 50;
       _shopItemsBought++;
+      await _db.updateClicks(_clicks);
       await _db.updateShopItemsBought(_shopItemsBought);
       await _db.updateForFreePeriodically(_forFreePeriodically);
     } else if (index == 5 && _clicks >= 500) {
       _forFreePeriodically += 10;
       _clicks -= 500;
       _shopItemsBought++;
+      await _db.updateClicks(_clicks);
       await _db.updateShopItemsBought(_shopItemsBought);
       await _db.updateForFreePeriodically(_forFreePeriodically);
     } else if (index == 6 && _clicks >= 5000) {
       _forFreePeriodically += 100;
       _clicks -= 5000;
       _shopItemsBought++;
+      await _db.updateClicks(_clicks);
       await _db.updateShopItemsBought(_shopItemsBought);
       await _db.updateForFreePeriodically(_forFreePeriodically);
     } else if (index == 7 && _clicks >= 50000) {
@@ -493,11 +500,11 @@ class MoneyMasherState extends State<MoneyMasher>
 
   Future<void> _handleScrollOfRebirth() async {
     _currentRebirth += 1;
-    await _db.updateMultiplier(2);
     await _db.updateClicks(0);
     await _db.updateShopItemsBought(0);
     await _db.updateForFreePeriodically(0);
     int currentRebirth = await _db.getRebirths();
+    await _db.updateMultiplier(2 * (currentRebirth + 1));
     setState(() {
       _clicks = 0;
       _shopItemsBought = 0;

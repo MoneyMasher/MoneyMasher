@@ -36,7 +36,7 @@ class DatabaseManager {
         }, conflictAlgorithm: ConflictAlgorithm.ignore
       );
       await db.insert("quests", {
-        "QuestID": 3, "QuestName": "Click 5,000 Times", "QuestType": "Click", "Goal": 500, "Reward": 5000, "TimeLimit": 0, "Completed": 0
+        "QuestID": 3, "QuestName": "Click 5,000 Times", "QuestType": "Click", "Goal": 5000, "Reward": 5000, "TimeLimit": 0, "Completed": 0
         }, conflictAlgorithm: ConflictAlgorithm.ignore
       );
       await db.insert("quests", {
