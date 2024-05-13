@@ -65,11 +65,12 @@ class QuestsState extends State<Quests> {
             widget.updateRewards(quest.reward);
           });
         }
-        if (currentClicks > quest.goal) {
-          currentClicks = quest.goal;
+        int thisQuestClicks = currentClicks;
+        if (thisQuestClicks > quest.goal) {
+          thisQuestClicks = quest.goal;
         }
-        quest.progressPercent = clampDouble(currentClicks / quest.goal, 0, 100);
-        quest.progress = currentClicks;
+        quest.progressPercent = clampDouble(thisQuestClicks / quest.goal, 0, 100);
+        quest.progress = thisQuestClicks;
       } else if (quest.type == "Quick") {
         if (clickTimes.isEmpty) {
           continue;
