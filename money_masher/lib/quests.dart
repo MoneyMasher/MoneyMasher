@@ -109,11 +109,12 @@ class QuestsState extends State<Quests> {
             widget.updateRewards(quest.reward);
           });
         }
-        if (currentBoughtItems > quest.goal) {
-          currentBoughtItems = quest.goal;
+        int thisQuestCurrentBoughtItems = currentBoughtItems;
+        if (thisQuestCurrentBoughtItems > quest.goal) {
+          thisQuestCurrentBoughtItems = quest.goal;
         }
-        quest.progressPercent = clampDouble(currentBoughtItems / quest.goal, 0, 100);
-        quest.progress = currentBoughtItems;
+        quest.progressPercent = clampDouble(thisQuestCurrentBoughtItems / quest.goal, 0, 100);
+        quest.progress = thisQuestCurrentBoughtItems;
       }
     }
   }

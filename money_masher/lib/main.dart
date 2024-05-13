@@ -335,9 +335,9 @@ class MoneyMasherState extends State<MoneyMasher>
   }
 
   final List<String> descriptions = [
-    "Every click counts as 2x for 1 minute.",
-    "Every click counts as 5x for 5 minutes.",
-    "Every click counts as 10x for 10 minutes.",
+    "Every click counts as +2 for 1 minute.",
+    "Every click counts as +5 for 5 minutes.",
+    "Every click counts as +10 for 10 minutes.",
     "Permanently gain +1 to every click.",
     "Get \$1 every 3 seconds for free.",
     "Get \$10 every 3 seconds for free.",
